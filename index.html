@@ -75,7 +75,7 @@
               const center = layer.getBounds().getCenter();
               L.marker(center).addTo(map).bindPopup(popupContent);
               layer.on('click', () => {
-                map.flyToBounds(layer.getBounds(), { duration: 2, easeLinearity: 0.25 });
+                map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
                 layer.openPopup();
               });
 
@@ -92,15 +92,8 @@
               });
               const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
               marker.bindPopup(popupContent);
-              const pulse = L.circle(centroid, {
-                radius: 200,
-                color: iconColor,
-                fillColor: iconColor,
-                fillOpacity: 0.3
-              }).addTo(map);
-              setTimeout(() => map.removeLayer(pulse), 2000);
               marker.on('dblclick', () => {
-                map.flyToBounds(layer.getBounds(), { duration: 2, easeLinearity: 0.25 });
+                map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
               });
             });
 
