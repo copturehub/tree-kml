@@ -11,6 +11,12 @@
 </head>
 <body>
   <div id="map"></div>
+  <select id="statusFilter" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+    <option value="Alla">Visa alla</option>
+    <option value="Ej påbörjat">Ej påbörjat</option>
+    <option value="Pågår">Pågår</option>
+    <option value="Färdigt">Färdigt</option>
+  </select>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
@@ -32,6 +38,8 @@
       'Färdigt': 'green'
     };
 
+    let currentLayers = [];
+
     fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?pageSize=100`, {
       headers: {
         'Authorization': `Bearer ${airtableApiKey}`
@@ -42,46 +50,76 @@
       console.log('✅ Hämtat från Airtable:', data);
       const records = data.records;
 
-      records.forEach(record => {
-        const url = record.fields[kmlField];
-        if (url && url.endsWith('.kml')) {
-          console.log('🔗 KML-länk hittad:', url);
-          const kmlLayer = omnivore.kml(url);
+      function renderFilteredRecords(records) {
+        currentLayers.forEach(layer => map.removeLayer(layer));
+        currentLayers = [];
 
-          kmlLayer.on('ready', () => {
-            kmlLayer.eachLayer(layer => {
-              const status = record.fields['Status'] || 'Ej påbörjat';
-              const popupContent = `
-                <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
-                Pilot: ${record.fields['Pilot'] || '-'}<br>
-                Status: ${status}<br>
-                Paket: ${record.fields['Paket'] || '-'}
-              `;
+        const selectedStatus = document.getElementById("statusFilter").value;
 
-              layer.bindPopup(popupContent);
-              layer.setStyle({
-                color: statusColors[status] || 'gray',
-                weight: 2,
-                fillOpacity: 0.3
-              });
+        records.forEach(record => {
+          const status = record.fields['Status'] || 'Ej påbörjat';
+          const url = record.fields[kmlField];
+          if (
+            url && 
+            url.endsWith('.kml') && 
+            (selectedStatus === 'Alla' || selectedStatus === status)
+          ) {
+            const kmlLayer = omnivore.kml(url);
+            kmlLayer.on('ready', () => {
+              kmlLayer.eachLayer(layer => {
+                const popupContent = `
+                  <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
+                  Pilot: ${record.fields['Pilot'] || '-'}<br>
+                  Tolkare: ${record.fields['Tolkare'] || '-'}<br>
+                  Status: ${status}<br>
+                  Paket: ${record.fields['Paket'] || '-'}<br>
+                  Hektar: ${record.fields['Hektar'] || '-'}<br>
+                  Hinder: ${record.fields['Hinder'] || '-'}<br>
+                  Hinder-beskrivning: ${record.fields['Hinder-beskrivning'] || '-'}<br>
+                  Kommentar: ${record.fields['Kommentar'] || '-'}<br>
+                  Skapad: ${record.fields['Skapandedatum'] || '-'}<br>
+                  KML-länk: <a href="${url}" target="_blank">Öppna</a>
+                `;
 
-              layer.on('click', () => {
-                map.fitBounds(layer.getBounds(), {
-                  animate: true,
-                  duration: 2
+                layer.bindPopup(popupContent);
+                layer.setStyle({
+                  color: statusColors[status] || 'gray',
+                  weight: 2,
+                  fillOpacity: 0.3
                 });
-                layer.openPopup();
+
+                const center = layer.getBounds().getCenter();
+                const marker = L.marker(center, {
+                  icon: L.icon({
+                    iconUrl: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|' + (statusColors[status] || 'gray'),
+                    iconSize: [21, 34],
+                    iconAnchor: [10, 34],
+                    popupAnchor: [0, -28]
+                  }),
+                  title: record.fields['Område'] || 'Okänt'
+                });
+
+                marker.bindPopup(popupContent);
+                marker.on('dblclick', () => {
+                  map.fitBounds(layer.getBounds(), {
+                    animate: true,
+                    duration: 4
+                  });
+                });
+
+                map.addLayer(marker);
+                currentLayers.push(marker);
+                map.addLayer(kmlLayer);
+                currentLayers.push(kmlLayer);
               });
             });
+          }
+        });
+      }
 
-            kmlLayer.addTo(map);
-            console.log('📍 KML laddad:', url);
-          });
-
-          kmlLayer.on('error', e => {
-            console.error('❌ KML-kunde inte läsas:', url, e);
-          });
-        }
+      renderFilteredRecords(records);
+      document.getElementById("statusFilter").addEventListener("change", () => {
+        renderFilteredRecords(records);
       });
     })
     .catch(err => {
