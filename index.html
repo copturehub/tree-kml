@@ -13,56 +13,77 @@
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
+  <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.4/leaflet-omnivore.min.js"></script>
 
   <script>
-  const airtableApiKey = 'patZ3fuodLNn5sYUy.1501af40d425069373298e4a878d3685a0e4ca5b146f191864e43513a6e2da9d';
-  const baseId = 'apppc6PyzkHn7f1DP';
-  const tableName = 'Uppdrag';
-  const kmlField = 'KML-fil';
+    const airtableApiKey = 'patZ3fuodLNn5sYUy.1501af40d425069373298e4a878d3685a0e4ca5b146f191864e43513a6e2da9d';
+    const baseId = 'apppc6PyzkHn7f1DP';
+    const tableName = 'Uppdrag';
+    const kmlField = 'KML-fil';
 
-  const map = L.map('map').setView([62.0, 15.0], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-  }).addTo(map);
+    const map = L.map('map').setView([63.0, 15.0], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
 
-  fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?pageSize=100`, {
-    headers: {
-      'Authorization': `Bearer ${airtableApiKey}`
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    console.log("✅ Hämtat från Airtable:", data);
+    const statusColors = {
+      'Ej påbörjat': 'red',
+      'Pågår': 'orange',
+      'Färdigt': 'green'
+    };
 
-    const records = data.records;
-    records.forEach(record => {
-      const url = record.fields[kmlField];
-
-      if (!url) {
-        console.warn("⚠️ Ingen KML-länk i denna rad:", record);
-        return;
+    fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?pageSize=100`, {
+      headers: {
+        'Authorization': `Bearer ${airtableApiKey}`
       }
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('✅ Hämtat från Airtable:', data);
+      const records = data.records;
 
-      console.log("🔗 KML-länk hittad:", url);
+      records.forEach(record => {
+        const url = record.fields[kmlField];
+        if (url && url.endsWith('.kml')) {
+          console.log('🔗 KML-länk hittad:', url);
+          const kmlLayer = omnivore.kml(url);
 
-      if (typeof url === 'string' && url.endsWith('.kml')) {
-        omnivore.kml(url)
-          .on('ready', function() {
-            console.log("📍 KML laddad:", url);
-            this.eachLayer(function(layer) {
-              layer.addTo(map);
+          kmlLayer.on('ready', () => {
+            kmlLayer.eachLayer(layer => {
+              const status = record.fields['Status'] || 'Ej påbörjat';
+              const popupContent = `
+                <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
+                Pilot: ${record.fields['Pilot'] || '-'}<br>
+                Status: ${status}<br>
+                Paket: ${record.fields['Paket'] || '-'}
+              `;
+
+              layer.bindPopup(popupContent);
+              layer.setStyle({
+                color: statusColors[status] || 'gray',
+                weight: 2,
+                fillOpacity: 0.3
+              });
+
+              layer.on('click', () => {
+                map.fitBounds(layer.getBounds());
+                layer.openPopup();
+              });
             });
-          })
-          .on('error', function(e) {
-            console.error("❌ KML-kunde inte läsas:", url, e);
+
+            kmlLayer.addTo(map);
+            console.log('📍 KML laddad:', url);
           });
-      } else {
-        console.warn("⚠️ Ogiltig länkformat:", url);
-      }
+
+          kmlLayer.on('error', e => {
+            console.error('❌ KML-kunde inte läsas:', url, e);
+          });
+        }
+      });
+    })
+    .catch(err => {
+      console.error('❌ Fel vid hämtning från Airtable:', err);
     });
-  })
-  .catch(err => console.error('❌ Fel vid hämtning från Airtable:', err));
-</script>
+  </script>
 </body>
 </html>
