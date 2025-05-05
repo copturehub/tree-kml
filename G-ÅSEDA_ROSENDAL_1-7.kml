@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+                    <kml xmlns="http://www.opengis.net/kml/2.2">
+                      <Document>
+                      <Style id="style">
+                          <LineStyle>
+                            <color>80EEEEEE</color>
+                            <width>3</width>
+                          </LineStyle>
+                          <PolyStyle>
+                            <color>00EEEEEE</color>
+                          </PolyStyle>
+                        </Style>
+                        <Placemark>
+                              <name>G-ASEDA ROSENDAL 1-7</name>
+                              <styleUrl>#style</styleUrl>
+                              <Polygon>
+                              <outerBoundaryIs>
+                                <LinearRing>
+                                  <coordinates>15.556881144515646,57.18558196328094 15.555208913650118,57.188933688681104 15.546690387300204,57.18522093577983 15.546828866781706,57.185108202033526 15.54700668005776,57.184786756336344 15.546984442193738,57.184616375419466 15.547225055145036,57.184590631544744 15.547279779539778,57.18434763482498 15.546646565587098,57.18391038701164 15.546651633662993,57.18343687730644 15.548550515181553,57.18304802228575 15.552365066333156,57.18420953230066 15.556881144515646,57.18558196328094</coordinates>
+                                </LinearRing>
+                              </outerBoundaryIs>
+                            </Polygon>
+                            
+                            </Placemark>
+                            
+                      </Document>
+                    </kml>
+                    
