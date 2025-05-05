@@ -10,7 +10,8 @@
     #statusFilter {
       position: absolute;
       top: 10px;
-      left: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 1001;
       background: white;
       padding: 5px;
@@ -75,6 +76,19 @@
                   KML-länk: <a href="${url}" target="_blank">Öppna</a>
                 `;
 
+                const statusColor = {
+                  'Ej påbörjat': '#999',
+                  'Pågår': '#f90',
+                  'Färdigt': '#4caf50'
+                }[status] || '#ccc';
+
+                layer.setStyle({
+                  color: statusColor,
+                  weight: 2,
+                  fillColor: statusColor,
+                  fillOpacity: 0.4
+                });
+
                 layer.bindPopup(popupContent);
                 // Add marker at the center of the layer bounds with the same popup
                 const center = layer.getBounds().getCenter();
@@ -96,7 +110,7 @@
                 marker.on('dblclick', () => {
                   map.fitBounds(layer.getBounds(), {
                     animate: true,
-                    duration: 2
+                    duration: 3.4
                   });
                 });
               });
