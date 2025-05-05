@@ -108,11 +108,13 @@
                 const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('dblclick', () => {
-                  map.flyToBounds(layer.getBounds(), { duration: 2 });
+                  map.fitBounds(layer.getBounds(), {
+                    animate: true,
+                    duration: 2
+                  });
                 });
               });
 
-              kmlLayer.addTo(map);
               console.log('📍 KML laddad:', url);
             });
 
