@@ -10,6 +10,12 @@
   </style>
 </head>
 <body>
+  <select id="statusFilter" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+    <option value="">Visa alla</option>
+    <option value="Ej påbörjat">Ej påbörjat</option>
+    <option value="Pågår">Pågår</option>
+    <option value="Färdigt">Färdigt</option>
+  </select>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
@@ -42,69 +48,86 @@
       console.log('✅ Hämtat från Airtable:', data);
       const records = data.records;
 
-      records.forEach(record => {
-        const url = record.fields[kmlField];
-        if (url && url.endsWith('.kml')) {
-          console.log('🔗 KML-länk hittad:', url);
-          const kmlLayer = omnivore.kml(url);
+      function renderKML(records) {
+        records.forEach(record => {
+          const url = record.fields[kmlField];
+          if (url && url.endsWith('.kml')) {
+            console.log('🔗 KML-länk hittad:', url);
+            const kmlLayer = omnivore.kml(url);
 
-          kmlLayer.on('ready', () => {
-            kmlLayer.eachLayer(layer => {
-              const status = record.fields['Status'] || 'Ej påbörjat';
-              const popupContent = `
-                <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
-                Pilot: ${record.fields['Pilot'] || '-'}<br>
-                Tolkare: ${record.fields['Tolkare'] || '-'}<br>
-                Status: ${status}<br>
-                Paket: ${record.fields['Paket'] || '-'}<br>
-                Hektar: ${record.fields['Hektar'] || '-'}<br>
-                Hinder: ${record.fields['Hinder'] || '-'}<br>
-                Hinder-beskrivning: ${record.fields['Hinder - beskrivning'] || '-'}<br>
-                Kommentar: ${record.fields['Kommentar'] || '-'}<br>
-                Skapad: ${record.fields['Skapandedatum'] || '-'}<br>
-                KML-länk: <a href="${url}" target="_blank">Öppna</a>
-              `;
+            kmlLayer.on('ready', () => {
+              kmlLayer.eachLayer(layer => {
+                const status = record.fields['Status'] || 'Ej påbörjat';
+                const popupContent = `
+                  <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
+                  Pilot: ${record.fields['Pilot'] || '-'}<br>
+                  Tolkare: ${record.fields['Tolkare'] || '-'}<br>
+                  Status: ${status}<br>
+                  Paket: ${record.fields['Paket'] || '-'}<br>
+                  Hektar: ${record.fields['Hektar'] || '-'}<br>
+                  Hinder: ${record.fields['Hinder'] || '-'}<br>
+                  Hinder-beskrivning: ${record.fields['Hinder - beskrivning'] || '-'}<br>
+                  Kommentar: ${record.fields['Kommentar'] || '-'}<br>
+                  Skapad: ${record.fields['Skapandedatum'] || '-'}<br>
+                  KML-länk: <a href="${url}" target="_blank">Öppna</a>
+                `;
 
-              layer.bindPopup(popupContent);
-              layer.setStyle({
-                color: statusColors[status] || 'gray',
-                weight: 2,
-                fillOpacity: 0.3
-              });
-              // Add marker at the center of the layer bounds with the same popup
-              const center = layer.getBounds().getCenter();
-              L.marker(center).addTo(map).bindPopup(popupContent);
-              layer.on('click', () => {
-                map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
-                layer.openPopup();
+                layer.bindPopup(popupContent);
+                layer.setStyle({
+                  color: statusColors[status] || 'gray',
+                  weight: 2,
+                  fillOpacity: 0.3
+                });
+                // Add marker at the center of the layer bounds with the same popup
+                const center = layer.getBounds().getCenter();
+                L.marker(center).addTo(map).bindPopup(popupContent);
+                layer.on('click', () => {
+                  map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
+                  layer.openPopup();
+                });
+
+                // Add marker at centroid with popup and dblclick event to zoom to polygon
+                const centroid = layer.getBounds().getCenter();
+                const iconColor = statusColors[status] || 'gray';
+                const icon = L.icon({
+                  iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${iconColor}.png`,
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41],
+                  popupAnchor: [1, -34],
+                  shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
+                  shadowSize: [41, 41]
+                });
+                const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
+                marker.bindPopup(popupContent);
+                marker.on('dblclick', () => {
+                  map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
+                });
               });
 
-              // Add marker at centroid with popup and dblclick event to zoom to polygon
-              const centroid = layer.getBounds().getCenter();
-              const iconColor = statusColors[status] || 'gray';
-              const icon = L.icon({
-                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${iconColor}.png`,
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
-                shadowSize: [41, 41]
-              });
-              const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
-              marker.bindPopup(popupContent);
-              marker.on('dblclick', () => {
-                map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
-              });
+              kmlLayer.addTo(map);
+              console.log('📍 KML laddad:', url);
             });
 
-            kmlLayer.addTo(map);
-            console.log('📍 KML laddad:', url);
-          });
+            kmlLayer.on('error', e => {
+              console.error('❌ KML-kunde inte läsas:', url, e);
+            });
+          }
+        });
+      }
 
-          kmlLayer.on('error', e => {
-            console.error('❌ KML-kunde inte läsas:', url, e);
-          });
-        }
+      renderKML(records);
+
+      document.getElementById('statusFilter').addEventListener('change', () => {
+        map.eachLayer(layer => {
+          if (layer instanceof L.Marker || layer instanceof L.Path) {
+            map.removeLayer(layer);
+          }
+        });
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const filteredRecords = selectedStatus
+          ? records.filter(r => r.fields['Status'] === selectedStatus)
+          : records;
+        renderKML(filteredRecords);
       });
     })
     .catch(err => {
