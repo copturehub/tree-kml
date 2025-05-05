@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>KML från Airtable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100vw; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
+
+  <script>
+  const airtableApiKey = 'patZ3fuodLNn5sYUy.1501af40d425069373298e4a878d3685a0e4ca5b146f191864e43513a6e2da9d';
+  const baseId = 'apppc6PyzkHn7f1DP';
+  const tableName = 'Uppdrag';
+  const kmlField = 'KML-fil';
+
+  const map = L.map('map').setView([62.0, 15.0], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+
+  fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?pageSize=100`, {
+    headers: {
+      'Authorization': `Bearer ${airtableApiKey}`
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("✅ Hämtat från Airtable:", data);
+
+    const records = data.records;
+    records.forEach(record => {
+      const url = record.fields[kmlField];
+
+      if (!url) {
+        console.warn("⚠️ Ingen KML-länk i denna rad:", record);
+        return;
+      }
+
+      console.log("🔗 KML-länk hittad:", url);
+
+      if (typeof url === 'string' && url.endsWith('.kml')) {
+        omnivore.kml(url)
+          .on('ready', function() {
+            console.log("📍 KML laddad:", url);
+            this.eachLayer(function(layer) {
+              layer.addTo(map);
+            });
+          })
+          .on('error', function(e) {
+            console.error("❌ KML-kunde inte läsas:", url, e);
+          });
+      } else {
+        console.warn("⚠️ Ogiltig länkformat:", url);
+      }
+    });
+  })
+  .catch(err => console.error('❌ Fel vid hämtning från Airtable:', err));
+</script>
+</body>
+</html>
