@@ -60,7 +60,9 @@
                 Hektar: ${record.fields['Hektar'] || '-'}<br>
                 Hinder: ${record.fields['Hinder'] || '-'}<br>
                 Hinder-beskrivning: ${record.fields['Hinder - beskrivning'] || '-'}<br>
-                Kommentar: ${record.fields['Kommentar'] || '-'}
+                Kommentar: ${record.fields['Kommentar'] || '-'}<br>
+                Skapad: ${record.fields['Skapandedatum'] || '-'}<br>
+                KML-länk: <a href="${url}" target="_blank">Öppna</a>
               `;
 
               layer.bindPopup(popupContent);
@@ -73,16 +75,32 @@
               const center = layer.getBounds().getCenter();
               L.marker(center).addTo(map).bindPopup(popupContent);
               layer.on('click', () => {
-                map.fitBounds(layer.getBounds());
+                map.flyToBounds(layer.getBounds(), { duration: 2, easeLinearity: 0.25 });
                 layer.openPopup();
               });
 
               // Add marker at centroid with popup and dblclick event to zoom to polygon
               const centroid = layer.getBounds().getCenter();
-              const marker = L.marker(centroid, { title: record.fields['Område'] || 'Område' }).addTo(map);
+              const iconColor = statusColors[status] || 'gray';
+              const icon = L.icon({
+                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${iconColor}.png`,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
+                shadowSize: [41, 41]
+              });
+              const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
               marker.bindPopup(popupContent);
+              const pulse = L.circle(centroid, {
+                radius: 200,
+                color: iconColor,
+                fillColor: iconColor,
+                fillOpacity: 0.3
+              }).addTo(map);
+              setTimeout(() => map.removeLayer(pulse), 2000);
               marker.on('dblclick', () => {
-                map.fitBounds(layer.getBounds());
+                map.flyToBounds(layer.getBounds(), { duration: 2, easeLinearity: 0.25 });
               });
             });
 
@@ -101,4 +119,4 @@
     });
   </script>
 </body>
-</html> 
+</html>
