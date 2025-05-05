@@ -76,6 +76,14 @@
                 map.fitBounds(layer.getBounds());
                 layer.openPopup();
               });
+
+              // Add marker at centroid with popup and dblclick event to zoom to polygon
+              const centroid = layer.getBounds().getCenter();
+              const marker = L.marker(centroid, { title: record.fields['Område'] || 'Område' }).addTo(map);
+              marker.bindPopup(popupContent);
+              marker.on('dblclick', () => {
+                map.fitBounds(layer.getBounds());
+              });
             });
 
             kmlLayer.addTo(map);
