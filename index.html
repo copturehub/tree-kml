@@ -13,7 +13,7 @@
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.4/leaflet-omnivore.min.js"></script>
+  <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
 
   <script>
     const airtableApiKey = 'patZ3fuodLNn5sYUy.1501af40d425069373298e4a878d3685a0e4ca5b146f191864e43513a6e2da9d';
@@ -26,7 +26,6 @@
       maxZoom: 19
     }).addTo(map);
 
-    // Enkla färger per status
     const statusColors = {
       'Ej påbörjat': 'red',
       'Pågår': 'orange',
@@ -87,4 +86,4 @@
     });
   </script>
 </body>
-</html>
+</html> 
