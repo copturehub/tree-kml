@@ -7,10 +7,19 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
     #map { height: 100vh; width: 100vw; }
+    #statusFilter {
+      position: absolute;
+      top: 10px;
+      left: 50px;
+      z-index: 1001;
+      background: white;
+      padding: 5px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
-  <select id="statusFilter" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+  <select id="statusFilter">
     <option value="">Visa alla</option>
     <option value="Ej påbörjat">Ej påbörjat</option>
     <option value="Pågår">Pågår</option>
