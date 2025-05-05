@@ -85,8 +85,9 @@
                 layer.setStyle({
                   color: statusColor,
                   weight: 2,
+                  opacity: 1,
                   fillColor: statusColor,
-                  fillOpacity: 0.4
+                  fillOpacity: 0.5
                 });
 
                 layer.bindPopup(popupContent);
@@ -105,7 +106,13 @@
 
                 // Add marker at centroid with popup and dblclick event to zoom to polygon
                 const centroid = layer.getBounds().getCenter();
-                const marker = L.marker(centroid, { title: record.fields['Område'] || 'Område' }).addTo(map);
+                const markerIcon = new L.Icon({
+                  iconUrl: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${statusColor.slice(1)}`,
+                  iconSize: [21, 34],
+                  iconAnchor: [10, 34],
+                  popupAnchor: [0, -28]
+                });
+                const marker = L.marker(centroid, { title: record.fields['Område'] || 'Område', icon: markerIcon }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('dblclick', () => {
                   map.fitBounds(layer.getBounds(), {
