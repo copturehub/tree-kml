@@ -10,7 +10,7 @@
     #statusFilter {
       position: absolute;
       top: 10px;
-      left: 50px;
+      left: 10px;
       z-index: 1001;
       background: white;
       padding: 5px;
@@ -84,14 +84,13 @@
                 layer.bindPopup(popupContent);
                 layer.setStyle({
                   color: statusColors[status] || 'gray',
-                  weight: 2,
-                  fillOpacity: 0.3
+                  weight: 2
                 });
                 // Add marker at the center of the layer bounds with the same popup
                 const center = layer.getBounds().getCenter();
                 L.marker(center).addTo(map).bindPopup(popupContent);
                 layer.on('click', () => {
-                  map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
+                  map.flyToBounds(layer.getBounds(), { duration: 2 });
                   layer.openPopup();
                 });
 
@@ -109,7 +108,7 @@
                 const marker = L.marker(centroid, { icon, title: record.fields['Område'] || 'Område' }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('dblclick', () => {
-                  map.flyToBounds(layer.getBounds(), { duration: 3, easeLinearity: 0.25 });
+                  map.flyToBounds(layer.getBounds(), { duration: 2 });
                 });
               });
 
