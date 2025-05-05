@@ -54,8 +54,13 @@
               const popupContent = `
                 <strong>${record.fields['Område'] || 'Okänt område'}</strong><br>
                 Pilot: ${record.fields['Pilot'] || '-'}<br>
+                Tolkare: ${record.fields['Tolkare'] || '-'}<br>
                 Status: ${status}<br>
-                Paket: ${record.fields['Paket'] || '-'}
+                Paket: ${record.fields['Paket'] || '-'}<br>
+                Hektar: ${record.fields['Hektar'] || '-'}<br>
+                Hinder: ${record.fields['Hinder'] || '-'}<br>
+                Hinder-beskrivning: ${record.fields['Hinder - beskrivning'] || '-'}<br>
+                Kommentar: ${record.fields['Kommentar'] || '-'}
               `;
 
               layer.bindPopup(popupContent);
@@ -64,7 +69,9 @@
                 weight: 2,
                 fillOpacity: 0.3
               });
-
+              // Add marker at the center of the layer bounds with the same popup
+              const center = layer.getBounds().getCenter();
+              L.marker(center).addTo(map).bindPopup(popupContent);
               layer.on('click', () => {
                 map.fitBounds(layer.getBounds());
                 layer.openPopup();
