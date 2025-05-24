@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="brighton" id="brighton">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>brighton</name>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>-91.9938019817556,46.84285941385 -91.9939976482917,46.8427285518626 -91.993697676506,46.8425049449782 -91.9933846825917,46.8425954911102 -91.9933846825917,46.8425954911102 -91.9933846825917,46.8425954911102 -91.9938019817556,46.84285941385</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>
